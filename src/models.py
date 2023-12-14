@@ -88,9 +88,9 @@ class Task(Base):
 
 # Dynamically create the view after declarative base is configured
 class DashboardView:
-    print("DashboardView !!!")
+    print("Task View !!!")
     dashboard_view = Table(
-        "dashboard_view",
+        "task_view",
         MetaData(),
         Column("task_id", Uuid, primary_key=True),
         autoload_with=engine )

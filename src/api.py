@@ -3,7 +3,7 @@ import asyncio
 import signal
 import sys
 import uuid
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, websockets
+from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, websockets
 
 from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
@@ -13,6 +13,7 @@ from src.crud import delete_record, insert_into_db, query_record, query_table, u
 from src.models import DashboardView, Project
 
 from src.sockets import ConnectionManager
+from src.utils import verify_token
 from src.view_models import ProjectConfig
 
 
@@ -55,9 +56,10 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int):
                 data = await asyncio.wait_for(websocket.receive_json(), 30)
             except TimeoutError:
                 print('Await for receive data timeout!')
+                
             if not is_timeout:
                 # A message is received
-                
+                previous_data = data
                 print(f"Websocket-ID {client_id} : IN-Message {data}")
                 if data.get("type") == "current_page":
                     page = data.get("page", 1)
@@ -140,7 +142,7 @@ async def project_config(config : ProjectConfig):
     
     
 @app.get('/project')
-async def list_projects(offset: int = 0, limit: int = 10):
+async def list_projects(token: str = Depends(verify_token), offset: int = 0, limit: int = 10):
     try:
         projects = query_table(Project, offset=offset, limit=limit, project_status='Active')
         data = [{'project_name':project.project_name, 'project_id':str(project.project_id)} for project in projects]

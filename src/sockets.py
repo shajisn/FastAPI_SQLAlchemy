@@ -12,11 +12,11 @@ class ConnectionManager:
 
     def disconnect(self, websocket: WebSocket):
         self.active_connections.remove(websocket)
-
+    
     async def send_updates(self, data: dict):
         if not self.active_connections:
             return
-
+        
         await asyncio.gather(
             *[connection.send_json(data) for connection in self.active_connections]
         )
